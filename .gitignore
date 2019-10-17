@@ -1,2 +1,5 @@
 # Exclude .log files from source
 *.log
+
+# Exclude Vagrant directory
+.vagrant/
