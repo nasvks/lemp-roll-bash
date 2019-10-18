@@ -25,6 +25,7 @@ if [[ $? -eq 0 ]]; then
  echo -e "[  OK  ] Package index has been updated.\\n"
 else
  echo -e "[ FAIL ] Package index update failed. Review $log for details.\\n"
+ exit 1
 fi
 
 # Check if NGINX, MySQL and PHP installed else install
