@@ -48,13 +48,4 @@ else
   exit 1
 fi
 
-#echo -e "[ WAIT ] Package installation files being removed. Cleaning...\\n"
-#apt-get -y autoclean &>> "$log"
-#if [[ $? -eq 0 ]]; then
-#  echo -e "[  OK  ] Package installation files have been removed.\\n"
-#else
-#  echo -e "[ FAIL ] Package installation files clean up failed. Review $log for details.\\n"
-#  exit 1
-#fi
-
 exit 0
