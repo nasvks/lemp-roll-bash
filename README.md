@@ -1,2 +1,2 @@
 # lemp-roll
-An NGINX, MySQL and PHP install script for Debian-based distros
+NGINX, MySQL and PHP install and clean up scripts for Debian-based distros
