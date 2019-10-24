@@ -21,5 +21,4 @@ A Vagrantfile has been included to make testing the script a little easier. Foll
 
 ## Disclaimer
 
-This is the first Git repository that I created after completing the Atlassian [Version Control with Git](https://www.coursera.org/learn/version-control-with-gie) course on Coursera. Drop me an [email](mailto:nas@vks.io) if you'd like to suggest an improvement to the way in which I've used Github.
-
+This is the first Git repository that I created after completing the Atlassian [Version Control with Git](https://www.coursera.org/learn/version-control-with-git) course on Coursera. Drop me an [email](mailto:nas@vks.io) if you'd like to suggest an improvement to the way in which I've used Github.
