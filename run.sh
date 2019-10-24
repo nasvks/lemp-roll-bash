@@ -6,6 +6,7 @@
 user=$(whoami)
 filename=$(basename "$0" .sh)
 log="$filename.log"
+url="http://127.0.0.1:8080"
 
 echo ""
 
@@ -48,6 +49,7 @@ if [[ $1 == "roll" ]]; then
       exit 1
     fi
   done
+  echo -e "[ DONE ] You can access the web service at $url.\\n"
 
 elif [[ $1 == "unroll" ]]; then
 
