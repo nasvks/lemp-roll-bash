@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Description: Install NGINX, MySQL and PHP on Debian-based distros
+# Description: Script to install or remove packages on Debian-based distros
 #      Author: Nasso Vikos <nas@vks.io>
 
 user=$(whoami)
@@ -83,7 +83,8 @@ elif [[ $1 == "unroll" ]]; then
 
 else
 
-  echo -e "[ EXIT ] Execute 'run.sh roll' to roll a new LEMP install or 'run.sh unroll' to revert changes.\\n"
+  # Exit and display help
+  echo -e "[ EXIT ] Execute 'run.sh roll' to install all packages in run.conf or 'run.sh unroll' to remove them.\\n"
 
 fi
 
