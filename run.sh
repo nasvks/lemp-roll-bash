@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-# Description: Script to install or remove packages on Debian-based distros
+# Description: An NGINX, MySQL and PHP install and clean up script for Debian-based distros
 #      Author: Nasso Vikos <nas@vks.io>
 
 user=$(whoami)
 filename=$(basename "$0" .sh)
 log="$filename.log"
-url="http://127.0.0.1:8080"
+ip=$(ip route get 1 | head -n 1 | awk '{ print $7 }')
+url="http://$ip:8080"
 
 echo ""
 
@@ -25,7 +26,7 @@ if [[ $1 == "roll" ]]; then
   if [[ $? -eq 0 ]]; then
     echo -e "[  OK  ] Package index has been updated.\\n"
   else
-    echo -e "[ FAIL ] Package index update failed. Review $log for details.\\n"
+    echo -e "[ EXIT ] Package index update failed. Review $log for details.\\n"
     exit 1
   fi
 
@@ -41,15 +42,45 @@ if [[ $1 == "roll" ]]; then
       if [[ $? -eq 0 ]]; then
         echo -e "[  OK  ] Package $package has been installed.\\n"
       else
-        echo -e "[ FAIL ] Package installation failed. Review $log for details.\\n"
+        echo -e "[ EXIT ] Package installation failed. Review $log for details.\\n"
         exit 1
       fi
     else
-      echo -e "[ FAIL ] Error querying package status. Review $log for details.\\n"
+      echo -e "[ EXIT ] Error querying package status. Review $log for details.\\n"
       exit 1
     fi
   done
-  echo -e "[ DONE ] You can access the web service at $url.\\n"
+
+  # Check if NGINX and MySQL are running
+  systemctl is-active mysql &>> /dev/null
+  if [[ $? -eq 0 ]]; then
+    echo -e "[  OK  ] Service MySQL is active.\\n"
+  else
+    echo -e "[ WAIT ] Service MySQL is inactive. Starting...\\n"
+    systemctl start mysql &>> "$log"
+    if [[ $? -eq 0 ]]; then
+      echo -e "[  OK  ] Service MySQL is active.\\n"
+    else
+      echo -e "[ EXIT ] Service MySQL is inactive. Try to start it manually.\\n"
+      exit 1
+    fi
+  fi
+
+  systemctl is-active nginx &>> /dev/null
+  if [[ $? -eq 0 ]]; then
+    echo -e "[  OK  ] Service NGINX is active.\\n"
+    echo -e "[ DONE ] You can access the web service at $url.\\n"
+  else
+    echo -e "[ WAIT ] Service NGINX is inactive. Starting...\\n"
+    systemctl start nginx &>> "$log"
+    if [[ $? -eq 0 ]]; then
+      echo -e "[  OK  ] Service NGINX is active.\\n"
+      echo -e "[ DONE ] You can access the web service at $url.\\n"
+    else
+      echo -e "[ EXIT ] Service NGINX is inactive. Try to start it manually.\\n"
+      exit 1
+    fi
+  fi
 
 elif [[ $1 == "unroll" ]]; then
 
@@ -62,13 +93,13 @@ elif [[ $1 == "unroll" ]]; then
       if [[ $? -eq 0 ]]; then
         echo -e "[  OK  ] Package $package has been removed.\\n"
       else
-        echo -e "[ FAIL ] Package removal failed. Review $log for details.\\n"
+        echo -e "[ EXIT ] Package removal failed. Review $log for details.\\n"
         exit 1
       fi
     elif [[ $? -eq 1 ]]; then
       echo -e "[ WAIT ] Package $package is not installed. Skipping...\\n"
     else
-      echo -e "[ FAIL ] Error querying package status. Review $log for details.\\n"
+      echo -e "[ EXIT ] Error querying package status. Review $log for details.\\n"
       exit 1
     fi
   done
@@ -79,7 +110,7 @@ elif [[ $1 == "unroll" ]]; then
   if [[ $? -eq 0 ]]; then
     echo -e "[  OK  ] Package dependencies have been removed.\\n"
   else
-    echo -e "[ FAIL ] Package dependencies clean up failed. Review $log for details.\\n"
+    echo -e "[ EXIT ] Package dependencies clean up failed. Review $log for details.\\n"
     exit 1
   fi
 
