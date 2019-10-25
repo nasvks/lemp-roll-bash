@@ -18,6 +18,7 @@ A Vagrantfile has been included to make testing the script a little easier. Foll
 * Install Let's Encrypt to enable HTTPS for the web service
 * Install the latest copy of Wordpress
 * Figure out how best to configure NGINX, MySQL and PHP for Wordpress
+* Create functions where applicable and refactor
 
 ## Disclaimer
 

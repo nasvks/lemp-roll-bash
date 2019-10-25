@@ -5,6 +5,7 @@
 
 user=$(whoami)
 filename=$(basename "$0" .sh)
+config="$filename.conf"
 log="$filename.log"
 ip=$(ip route get 1 | head -n 1 | awk '{ print $7 }')
 url="http://$ip:8080"
@@ -30,8 +31,8 @@ if [[ $1 == "roll" ]]; then
     exit 1
   fi
 
-  # Check if NGINX, MySQL and PHP installed else install
-  for package in $(cat run.conf); do
+  # Check whether packages are installed else install
+  for package in $(cat "$config" | grep install | cut -d "=" -f 1); do
   package_status=$(dpkg-query --show --showformat='${db:Status-Status}' "$package" 2>> "$log" )
     if [[ $? -eq 0 ]] && [[ $package_status == "installed" ]]; then
       echo -e "[  OK  ] Package $package is installed.\\n"
@@ -69,13 +70,17 @@ if [[ $1 == "roll" ]]; then
   systemctl is-active nginx &>> /dev/null
   if [[ $? -eq 0 ]]; then
     echo -e "[  OK  ] Service NGINX is active.\\n"
-    echo -e "[ DONE ] You can access the web service at $url.\\n"
+    if [[ $(logname) == "vagrant" ]]; then
+      echo -e "[ DONE ] Access the web service at http://127.0.0.1:8080.\\n"
+    else
+      echo -e "[ DONE ] Access the web service at $url.\\n"
+    fi
   else
     echo -e "[ WAIT ] Service NGINX is inactive. Starting...\\n"
     systemctl start nginx &>> "$log"
     if [[ $? -eq 0 ]]; then
       echo -e "[  OK  ] Service NGINX is active.\\n"
-      echo -e "[ DONE ] You can access the web service at $url.\\n"
+      echo -e "[ DONE ] Access the web service at $url or http://127.0.0.1:8080.\\n"
     else
       echo -e "[ EXIT ] Service NGINX is inactive. Try to start it manually.\\n"
       exit 1
@@ -84,8 +89,8 @@ if [[ $1 == "roll" ]]; then
 
 elif [[ $1 == "unroll" ]]; then
 
-  # Check if NGINX, MySQL and PHP installed and remove or skip
-  for package in $(tac run.conf); do
+  # Check whether packages are installed and remove or skip
+  for package in $(tac "$config" | grep install | cut -d "=" -f 1); do
     package_status=$(dpkg-query --show --showformat='${db:Status-Status}' "$package" 2>> "$log" )
     if [[ $? -eq 0 ]] && [[ $package_status == "installed" ]]; then
       echo -e "[  OK  ] Package $package is installed. Removing...\\n"
