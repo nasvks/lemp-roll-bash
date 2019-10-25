@@ -4,6 +4,8 @@ An NGINX, MySQL and PHP install and clean up script for Debian-based distros
 ## Usage
 Execute ``sudo bash run.sh roll`` to install packages specified in run.conf or ``sudo bash run.sh unroll`` to remove them. Additional packages can be installed by adding them to the run.conf file.
 
+By default a very basic netfilter firewall is enabled and is configured to accepts traffic on ports 22/tcp and 80/tcp. To skip configuring the firewall, set ``ufw=disabled`` in run.conf.
+
 ## Testing
 A Vagrantfile has been included to make testing the script a little easier. Follow the instructions below to make use of it.
 
@@ -14,7 +16,9 @@ A Vagrantfile has been included to make testing the script a little easier. Foll
 5. ``sudo bash /vagrant/run.sh roll`` to install packages
 
 ## Todo 
-* Secure access to the virtual machine using ufw
+* ~~Add a check for Internet connectivity~~
+* ~~Secure access to the virtual machine using ufw~~
+* Add an option to hit Q to quit
 * Install Let's Encrypt to enable HTTPS for the web service
 * Install the latest copy of Wordpress
 * Figure out how best to configure NGINX, MySQL and PHP for Wordpress

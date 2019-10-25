@@ -21,8 +21,33 @@ fi
 # Check command line parameter
 if [[ $1 == "roll" ]]; then
 
+  # Check whether firewall should be enabled
+  echo -e "[ WAIT ] Firewall is being configured. Configuring...\\n"
+  if [[ $(grep ufw "$config" | cut -d "=" -f 2) == "enabled" ]]; then
+    ufw default deny incoming &> "$log" && \
+    ufw allow 22,80 &>> "$log" && \
+    ufw --force enable &>> "$log" && \
+    sleep 3
+    if [[ $? -eq 0 ]]; then
+      echo -e "[  OK  ] Firewall configuration completed.\\n"
+    else
+      echo -e "[ EXIT ] Firewall configuration failed. Review $log for details.\\n"
+    fi
+  else
+    echo -e "[ INFO ] Skipping firewall config.\\n"
+  fi
+
+  # Perform basic Internet connectivity test
+  ping -c 3 $(grep ping "$config" | cut -d "=" -f 2) &>> "$log"
+  if [[ $? -eq 0 ]]; then
+    echo -e "[  OK  ] Internet connectivity confirmed.\\n"
+  else
+    echo -e "[ EXIT ] Internet connectivity test failed. Check network connectivity.\\n"
+    exit 1
+  fi
+
   # Update the package index
-  echo -e "[ WAIT ] Package index is being updated.\\n"
+  echo -e "[ WAIT ] Package index is being updated. Updating...\\n"
   apt-get update &>> "$log"
   if [[ $? -eq 0 ]]; then
     echo -e "[  OK  ] Package index has been updated.\\n"
@@ -62,7 +87,7 @@ if [[ $1 == "roll" ]]; then
     if [[ $? -eq 0 ]]; then
       echo -e "[  OK  ] Service MySQL is active.\\n"
     else
-      echo -e "[ EXIT ] Service MySQL is inactive. Try to start it manually.\\n"
+      echo -e "[ EXIT ] Service start failed. Try to start it manually.\\n"
       exit 1
     fi
   fi
@@ -71,7 +96,7 @@ if [[ $1 == "roll" ]]; then
   if [[ $? -eq 0 ]]; then
     echo -e "[  OK  ] Service NGINX is active.\\n"
     if [[ $(logname) == "vagrant" ]]; then
-      echo -e "[ DONE ] Access the web service at http://127.0.0.1:8080.\\n"
+      echo -e "[ INFO ] Access the web service at http://127.0.0.1:8080.\\n"
     else
       echo -e "[ DONE ] Access the web service at $url.\\n"
     fi
@@ -80,9 +105,13 @@ if [[ $1 == "roll" ]]; then
     systemctl start nginx &>> "$log"
     if [[ $? -eq 0 ]]; then
       echo -e "[  OK  ] Service NGINX is active.\\n"
-      echo -e "[ DONE ] Access the web service at $url or http://127.0.0.1:8080.\\n"
+      if [[ $(logname) == "vagrant" ]]; then
+        echo -e "[ INFO ] Access the web service at http://127.0.0.1:8080.\\n"
+      else
+        echo -e "[ DONE ] Access the web service at $url.\\n"
+      fi
     else
-      echo -e "[ EXIT ] Service NGINX is inactive. Try to start it manually.\\n"
+      echo -e "[ EXIT ] Service start failed. Try to start it manually.\\n"
       exit 1
     fi
   fi
@@ -102,7 +131,7 @@ elif [[ $1 == "unroll" ]]; then
         exit 1
       fi
     elif [[ $? -eq 1 ]]; then
-      echo -e "[ WAIT ] Package $package is not installed. Skipping...\\n"
+      echo -e "[ INFO ] Package $package is not installed. Skipping...\\n"
     else
       echo -e "[ EXIT ] Error querying package status. Review $log for details.\\n"
       exit 1
@@ -119,11 +148,23 @@ elif [[ $1 == "unroll" ]]; then
     exit 1
   fi
 
+  # Deconfigure firewall
+  ufw --force reset &>> "$log" && \
+  ufw --force disable &>> "$log"
+  if [[ $? -eq 0 ]]; then
+    echo -e "[  OK  ] Firewall has been deconfigured.\\n"
+  else
+    echo -e "[ EXIT ] Firewall could not be deconfigured. Review $log for details.\\n"
+    exit 1
+  fi
+
 else
 
   # Exit and display help
   echo -e "[ EXIT ] Execute 'run.sh roll' to install all packages in run.conf or 'run.sh unroll' to remove them.\\n"
 
 fi
+
+echo -e "[ DONE ] All tasks completed.\\n"
 
 exit 0
