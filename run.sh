@@ -8,7 +8,7 @@ filename=$(basename "$0" .sh)
 config="$filename.conf"
 log="$filename.log"
 ip=$(ip route get 1 | head -n 1 | awk '{ print $7 }')
-url="http://$ip:8080"
+url="http://$ip"
 
 echo ""
 
@@ -22,8 +22,8 @@ fi
 if [[ $1 == "roll" ]]; then
 
   # Check whether firewall should be enabled
-  echo -e "[ WAIT ] Firewall is being configured. Configuring...\\n"
   if [[ $(grep ufw "$config" | cut -d "=" -f 2) == "enabled" ]]; then
+    echo -e "[ WAIT ] Firewall is being configured. Configuring...\\n"
     ufw default deny incoming &> "$log" && \
     ufw allow 22,80 &>> "$log" && \
     ufw --force enable &>> "$log" && \
@@ -32,9 +32,10 @@ if [[ $1 == "roll" ]]; then
       echo -e "[  OK  ] Firewall configuration completed.\\n"
     else
       echo -e "[ EXIT ] Firewall configuration failed. Review $log for details.\\n"
+      exit 1
     fi
   else
-    echo -e "[ INFO ] Skipping firewall config.\\n"
+    echo -e "[ INFO ] Skipping firewall configuration.\\n"
   fi
 
   # Perform basic Internet connectivity test
@@ -162,6 +163,7 @@ else
 
   # Exit and display help
   echo -e "[ EXIT ] Execute 'run.sh roll' to install all packages in run.conf or 'run.sh unroll' to remove them.\\n"
+  exit 1
 
 fi
 
