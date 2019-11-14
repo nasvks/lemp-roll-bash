@@ -21,7 +21,7 @@ if [[ $user != "root" ]]; then
 fi
 
 # Catch Ctrl-C key press
-echo -e "[ INFO ] Hit Ctrl-C to break and quit (exit 2).\\n"
+echo -e "[ INFO ] Hit Ctrl-C to break and exit (exit 2).\\n"
 trap 'echo -e "[ EXIT ] Script terminated by user.\\n";
       stty echo;
       exit 2' INT
@@ -33,7 +33,8 @@ if [[ $1 == "roll" ]]; then
   if [[ $(grep ufw "$config" | cut -d "=" -f 2) == "enabled" ]]; then
     echo -e "[ WAIT ] Firewall is being configured. Configuring...\\n"
     ufw default deny incoming &> "$log" && \
-    ufw allow 22,80 &>> "$log" && \
+    ufw allow 22/tcp comment 'SSH' &>> "$log" && \
+    ufw allow 80/tcp comment 'HTTP' &>> "$log" && \
     ufw --force enable &>> "$log" && \
     sleep 3
     if [[ $? -eq 0 ]]; then
@@ -131,7 +132,7 @@ elif [[ $1 == "unroll" ]]; then
   for package in $(tac "$config" | grep install | cut -d "=" -f 1); do
     package_status=$(dpkg-query --show --showformat='${db:Status-Status}' "$package" 2>> "$log" )
     if [[ $? -eq 0 ]] && [[ $package_status == "installed" ]]; then
-      echo -e "[  OK  ] Package $package is installed. Removing...\\n"
+      echo -e "[ WAIT ] Package $package is installed. Removing...\\n"
       apt-get -y purge "$package" &>> "$log"
       if [[ $? -eq 0 ]]; then
         echo -e "[  OK  ] Package $package has been removed.\\n"
@@ -149,7 +150,7 @@ elif [[ $1 == "unroll" ]]; then
 
   # Run package clean up tasks
   echo -e "[ WAIT ] Package dependencies are being removed. Cleaning...\\n"
-  apt-get -y autoremove &>> "$log"
+  apt-get autoremove -y &>> "$log"
   if [[ $? -eq 0 ]]; then
     echo -e "[  OK  ] Package dependencies have been removed.\\n"
   else
